@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npm run prisma:generate:*)",
+      "Bash(npm run prisma:migrate:*)",
+      "Bash(psql:*)",
+      "Bash(pg_isready:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(timeout 8 npm run dev)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
+    ]
+  }
+}

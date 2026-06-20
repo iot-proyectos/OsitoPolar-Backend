@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+model User {
+  id                String         @id @default(uuid())
+  name              String
+  email             String         @unique
+  password          String
+  stripeCustomerId  String?        @unique
+  role              Role           @default(USER)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime?
+
+  devices           Device[]
+  subscription      Subscription?
+  userMetrics       UserMetrics[]
+  sections          Section[]
+  alerts            Alert[]
+  refreshTokens     RefreshToken[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ============================================
+// DEVICE (ESP32)
+// ============================================
+
+model Device {
+  id              String       @id @default(uuid())
+  name            String
+  serialNumber    String       @unique
+  apiKey          String       @unique
+  status          DeviceStatus @default(OFFLINE)
+  lastSeenAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  userId          String?
+  user            User?        @relation(fields: [userId], references: [id])
+
+  temperatures       Temperature[]
+  humidities         Humidity[]
+  energyConsumptions EnergyConsumption[]
+  mappings           Mapping[]
+  userMetrics        UserMetrics[]
+}
+
+enum DeviceStatus {
+  ONLINE
+  OFFLINE
+}
+
+// ============================================
+// SENSOR DATA
+// ============================================
+
+model Temperature {
+  id        String   @id @default(uuid())
+  celsius   Float
+  createdAt DateTime @default(now())
+
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, createdAt])
+}
+
+model Humidity {
+  id         String   @id @default(uuid())
+  percentage Float
+  createdAt  DateTime @default(now())
+
+  deviceId   String
+  device     Device   @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, createdAt])
+}
+
+model EnergyConsumption {
+  id        String   @id @default(uuid())
+  watts     Float
+  voltage   Float?
+  current   Float?
+  createdAt DateTime @default(now())
+
+  deviceId  String
+  device    Device   @relation(fields: [deviceId], references: [id])
+
+  @@index([deviceId, createdAt])
+}
+
+// ============================================
+// SECTION (Plano interactivo)
+// ============================================
+
+model Section {
+  id        String   @id @default(uuid())
+  name      String
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  mappings  Mapping[]
+}
+
+model Mapping {
+  id        String @id @default(uuid())
+  x         Float
+  y         Float
+
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  deviceId  String
+  device    Device  @relation(fields: [deviceId], references: [id])
+
+  @@unique([sectionId, deviceId])
+}
+
+// ============================================
+// SUBSCRIPTION & STRIPE
+// ============================================
+
+model Subscription {
+  id                    String   @id @default(uuid())
+  type                  SubType  @default(NONE)
+  stripeSubscriptionId  String?  @unique
+  expiresAt             DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
+}
+
+enum SubType {
+  NONE
+  BOUGHT
+  RENTING
+  BUSINESS
+}
+
+// ============================================
+// ALERTAS & UMBRALES
+// ============================================
+
+model UserMetrics {
+  id         String     @id @default(uuid())
+  inferior   Float
+  superior   Float
+  metricType MetricType @default(TEMPERATURE)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  userId     String
+  user       User       @relation(fields: [userId], references: [id])
+
+  deviceId   String
+  device     Device     @relation(fields: [deviceId], references: [id])
+
+  @@unique([userId, deviceId, metricType])
+}
+
+enum MetricType {
+  TEMPERATURE
+  HUMIDITY
+  ENERGY
+}
+
+model Alert {
+  id         String    @id @default(uuid())
+  type       AlertType
+  message    String
+  value      Float
+  threshold  Float
+  isRead     Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+
+  deviceId   String
+}
+
+enum AlertType {
+  TEMP_HIGH
+  TEMP_LOW
+  HUMIDITY_HIGH
+  HUMIDITY_LOW
+  ENERGY_HIGH
+  DEVICE_OFFLINE
+}
