@@ -45,8 +45,6 @@ export class DeviceService {
       serialNumber: input.serialNumber,
       apiKey,
       userId,
-        coordinateX: input.coordinateX, // <-- PASAMOS LA COORDENADA X
-        coordinateY: input.coordinateY  // <-- PASAMOS LA COORDENADA Y
     });
 
     return {

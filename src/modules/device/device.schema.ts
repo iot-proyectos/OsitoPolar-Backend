@@ -3,9 +3,6 @@ import { z } from 'zod';
 export const createDeviceSchema = z.object({
     name: z.string().min(1, 'Device name is required').max(200),
     serialNumber: z.string().min(1, 'Serial number is required').max(100),
-    // Campos opcionales para el mapa
-    coordinateX: z.number().optional(),
-    coordinateY: z.number().optional(),
 });
 
 export const updateDeviceSchema = z.object({
