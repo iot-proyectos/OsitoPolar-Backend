@@ -32,30 +32,36 @@ export class DeviceRepository {
         serialNumber: string;
         apiKey: string;
         userId: string;
-        coordinateX: number;
-        coordinateY: number;
+        coordinateX?: number;
+        coordinateY?: number;
     }): Promise<Device> {
 
-        // 1. Buscamos el ID del plano principal (Section) DEL USUARIO ACTUAL
-        let primerPlano = await prisma.section.findFirst({
-            where: {
-                userId: data.userId
-            }
-        });
+        // Solo crear mapping si se proporcionan ambas coordenadas
+        const hasCoordinates = data.coordinateX !== undefined && data.coordinateY !== undefined;
 
-        // 2. CREACIÓN BAJO DEMANDA: Si no tiene mapa, le creamos uno automáticamente
-        if (!primerPlano) {
-            primerPlano = await prisma.section.create({
-                data: {
-                    name: "Plano Principal",
-                    imageUrl: "https://via.placeholder.com/800x600.png?text=Plano+Por+Defecto", // <--- AGREGAMOS EL DATO FALTANTE
+        let primerPlano = null;
+        if (hasCoordinates) {
+            // 1. Buscamos el ID del plano principal (Section) DEL USUARIO ACTUAL
+            primerPlano = await prisma.section.findFirst({
+                where: {
                     userId: data.userId
                 }
             });
-            console.log(`[OsitoPolar] Mapa automático creado para el usuario ${data.userId}`);
+
+            // 2. CREACIÓN BAJO DEMANDA: Si no tiene mapa, le creamos uno automáticamente
+            if (!primerPlano) {
+                primerPlano = await prisma.section.create({
+                    data: {
+                        name: "Plano Principal",
+                        imageUrl: "https://via.placeholder.com/800x600.png?text=Plano+Por+Defecto",
+                        userId: data.userId
+                    }
+                });
+                console.log(`[OsitoPolar] Mapa automático creado para el usuario ${data.userId}`);
+            }
         }
 
-        // 3. MAGIA DE PRISMA: Creamos el Equipo y sus relaciones de un solo golpe
+        // 3. Creamos el Equipo y sus relaciones
         return prisma.device.create({
             data: {
                 name: data.name,
@@ -64,13 +70,15 @@ export class DeviceRepository {
                 userId: data.userId,
 
                 // --- RELACIONES ANIDADAS ---
-                mappings: {
-                    create: {
-                        x: data.coordinateX,
-                        y: data.coordinateY,
-                        sectionId: primerPlano.id
+                ...(hasCoordinates && primerPlano ? {
+                    mappings: {
+                        create: {
+                            x: data.coordinateX!,
+                            y: data.coordinateY!,
+                            sectionId: primerPlano.id
+                        }
                     }
-                },
+                } : {}),
                 temperatures: {
                     create: { celsius: 0.0 } // Temperatura inicial de fábrica
                 },

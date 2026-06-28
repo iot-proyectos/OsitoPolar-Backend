@@ -9,7 +9,9 @@
       "Bash(npx prisma migrate:*)",
       "Bash(timeout 8 npm run dev)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
