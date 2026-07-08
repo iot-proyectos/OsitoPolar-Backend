@@ -18,7 +18,7 @@ export class UserMetricsService {
 
   async getByApiKey(apiKey: string): Promise<unknown[]> {
     const device = await this.deviceRepository.findByApiKey(apiKey);
-    if (!device) throw AppError.notFound('Dispositivo no encontrado');
+    if (!device || !device.userId) throw AppError.notFound('Dispositivo no encontrado');
 
     return this.metricsRepository.findByUserAndDevice(device.userId, device.id);
   }
