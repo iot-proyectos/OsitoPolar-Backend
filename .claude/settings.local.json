@@ -11,7 +11,8 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "PowerShell(npx tsc --noEmit 2>&1)"
     ]
   }
 }

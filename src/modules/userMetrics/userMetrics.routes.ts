@@ -6,9 +6,12 @@ import {
   updateUserMetricsSchema,
   metricsIdParamSchema,
   deviceIdParamSchema,
+  apiKeyParamSchema,
 } from './userMetrics.schema';
 
 const router = Router();
+
+router.get('/by-apikey/:apiKey', validate(apiKeyParamSchema, 'params'), UserMetricsController.getByApiKey);
 
 router.use(authMiddleware);
 

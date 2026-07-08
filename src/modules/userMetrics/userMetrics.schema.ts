@@ -27,5 +27,9 @@ export const deviceIdParamSchema = z.object({
   deviceId: z.string().uuid('Invalid device ID'),
 });
 
+export const apiKeyParamSchema = z.object({
+  apiKey: z.string().min(1, 'API key is required'),
+});
+
 export type CreateUserMetricsInput = z.infer<typeof createUserMetricsSchema>;
 export type UpdateUserMetricsInput = z.infer<typeof updateUserMetricsSchema>;

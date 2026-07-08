@@ -14,6 +14,15 @@ export class UserMetricsController {
     }
   }
 
+  static async getByApiKey(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await metricsService.getByApiKey(req.params.apiKey as string);
+      sendSuccess(res, result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getByDevice(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const result = await metricsService.getByDevice(req.user!.id, req.params.deviceId as string);

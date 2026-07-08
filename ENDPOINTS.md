@@ -191,6 +191,7 @@ Base URL: `http://localhost:3000/api/v1`
 |--------|----------|-------------|------|
 | GET | `/metrics` | Listar umbrales del usuario | Si |
 | GET | `/metrics/device/:deviceId` | Umbrales de un dispositivo | Si |
+| GET | `/metrics/by-apikey/:apiKey` | Umbrales por API key del dispositivo | No |
 | POST | `/metrics` | Crear umbral de alerta | Si |
 | PUT | `/metrics/:id` | Actualizar umbral | Si |
 | DELETE | `/metrics/:id` | Eliminar umbral | Si |
