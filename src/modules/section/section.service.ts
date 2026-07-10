@@ -1,6 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import { prisma } from '../../config';
+import { prisma, uploadToCloudinary, deleteFromCloudinary } from '../../config';
 import { AppError } from '../../shared/utils';
 import { SectionRepository } from './section.repository';
 import { CreateSectionInput, UpdateSectionInput } from './section.schema';
@@ -57,11 +55,11 @@ export class SectionService {
     imageUrl: string;
     createdAt: Date;
   }> {
-    const imageUrl = `/uploads/sections/${file.filename}`;
+    const { url } = await uploadToCloudinary(file.buffer, 'osito-polar/sections');
 
     const section = await this.sectionRepository.create({
       name: input.name,
-      imageUrl,
+      imageUrl: url,
       userId,
     });
 
@@ -87,7 +85,6 @@ export class SectionService {
       throw AppError.forbidden('You do not own this section');
     }
 
-    // Fetch latest readings for each device in the mapping
     const mappingsWithReadings = await Promise.all(
       section.mappings.map(async (mapping) => {
         const [lastTemp, lastHumidity] = await Promise.all([
@@ -154,13 +151,9 @@ export class SectionService {
     }
 
     if (file) {
-      // Delete old image if it exists
-      const oldImagePath = path.resolve(process.cwd(), section.imageUrl.replace(/^\//, ''));
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-      }
-
-      updateData.imageUrl = `/uploads/sections/${file.filename}`;
+      await deleteFromCloudinary(section.imageUrl);
+      const { url } = await uploadToCloudinary(file.buffer, 'osito-polar/sections');
+      updateData.imageUrl = url;
     }
 
     const updated = await this.sectionRepository.update(sectionId, updateData);
@@ -184,12 +177,7 @@ export class SectionService {
       throw AppError.forbidden('You do not own this section');
     }
 
-    // Delete image file
-    const imagePath = path.resolve(process.cwd(), section.imageUrl.replace(/^\//, ''));
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
-    }
-
+    await deleteFromCloudinary(section.imageUrl);
     await this.sectionRepository.delete(sectionId);
   }
 }

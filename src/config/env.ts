@@ -30,4 +30,9 @@ export const env = {
   upload: {
     maxSize: parseInt(process.env.UPLOAD_MAX_SIZE || '5242880', 10),
   },
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+  },
 } as const;
