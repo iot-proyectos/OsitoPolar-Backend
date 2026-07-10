@@ -135,7 +135,7 @@ export class SubscriptionService {
 
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription as string;
+        const subscriptionId = invoice.parent?.subscription_details?.subscription as string;
 
         if (subscriptionId) {
           const subscription = await this.subscriptionRepository.findByStripeSubscriptionId(subscriptionId);
